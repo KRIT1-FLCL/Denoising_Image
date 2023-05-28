@@ -121,31 +121,32 @@ def change_noise_type(*args):
 def change_noise_intensity(value):
     global noise_params
 
-    # изменение значения атрибута noise_intensity или denoise_intensity словаря
-    # noise_params в зависимости от положения ползунка noise_intensity_scale
-    # if mode_switch.get() == "Добавление шума":
-    #     noise_params["noise_intensity"] = float(value)
-    # else:
-    #     noise_params["denoise_intensity"] = float(value)
-
-    mode_value = mode_var.get()
-
-    def switch_mode():
-        global noise_params
-        # Получение значения выбранной кнопки с помощью метода get() переменной mode_var
-        mode_value = mode_var.get()
-        # Сравнение значения с 1 или 2 для определения режима работы программы
-        if mode_value == 1:
-            # Режим добавления шума
-            noise_params["noise_type"] = noise_type_var.get()
-        else:
-            # Режим удаления шума
-            noise_params["noise_type"] = "Denoise"
-        # Генерация и отображение зашумленного изображения на холсте
-        generate_and_show_noisy_image()
+    # изменение значения атрибута noise_intensity или denoise_intensity словаря noise_params в зависимости от положения ползунка noise_intensity_scale
+    if mode_switch == "Добавление шума":
+        noise_params["noise_intensity"] = float(value)
+    else:
+        noise_params["denoise_intensity"] = float(value)
 
     # генерация и отображение зашумленного изображения на холсте
     generate_and_show_noisy_image()
+
+
+def switch_mode():
+    global noise_params
+    # Получение значения выбранной кнопки с помощью метода get() переменной mode_var
+    mode_value = mode_var.get()
+    # Сравнение значения с 1 или 2 для определения режима работы программы
+    if mode_value == 1:
+        # Режим добавления шума
+        noise_params["noise_type"] = noise_type_var.get()
+    else:
+        # Режим удаления шума
+        noise_params["noise_type"] = "Denoise"
+    # Генерация и отображение зашумленного изображения на холсте
+    #generate_and_show_noisy_image()
+
+# генерация и отображение зашумленного изображения на холсте
+#generate_and_show_noisy_image()
 
 
 # создание функции для генерации гауссовского шума с заданной интенсивностью
@@ -293,11 +294,12 @@ def generate_and_show_noisy_image():
         noisy_image_canvas.image = noisy_image_tk
 
         # Оценка качества зашумленного изображения с помощью SSIM и вывод результата на экран
-        ssim_value = ssim(original_image_np, noisy_image_np, multichannel=True)
+        #ssim_value = ssim(original_image_np, noisy_image_np, multichannel=True)
+        ssim_value = ssim(original_image_np, noisy_image_np, multichannel=True, win_size=5, channel_axis=2)
         ssim_label.config(text=f"SSIM: {ssim_value:.4f}")
 
 
-# Создание функции для удаления шума с заданной интенсивностью
+#Создание функции для удаления шума с заданной интенсивностью
 def denoise_image(image, intensity):
     # Выбор типа фильтра для удаления шума в зависимости от интенсивности удаления шума
     if intensity < 0.25:
@@ -318,41 +320,9 @@ def denoise_image(image, intensity):
 
 
 
-
 # Создание виджетов для управления параметрами шума
 mode_label = tk.Label(top_frame, text="Режим работы программы:")
 mode_label.pack(side=tk.LEFT)
-
-
-# mode_switch = tk.Radiobutton(top_frame, text="Добавление шума", value="Добавление шума", command=switch_mode)
-# mode_switch.pack(side=tk.LEFT)
-# mode_switch.select()
-# mode_switch = tk.Radiobutton(top_frame, text="Удаление шума", value="Удаление шума", command=switch_mode)
-# mode_switch.pack(side=tk.LEFT)
-
-
-# mode_var = tk.IntVar()
-# mode_switch = tk.Radiobutton(top_frame, text="Добавление шума", value=1, variable=mode_var, command=switch_mode)
-# mode_switch.pack(side=tk.LEFT)
-# mode_switch.select()
-# mode_switch = tk.Radiobutton(top_frame, text="Удаление шума", value=2, variable=mode_var, command=switch_mode)
-# mode_switch.pack(side=tk.LEFT)
-#
-# mode_value = mode_var.get()
-#
-# def switch_mode():
-#     global noise_params
-#     # Получение значения выбранной кнопки с помощью метода get() переменной mode_var
-#     mode_value = mode_var.get()
-#     # Сравнение значения с 1 или 2 для определения режима работы программы
-#     if mode_value == 1:
-#         # Режим добавления шума
-#         noise_params["noise_type"] = noise_type_var.get()
-#     else:
-#         # Режим удаления шума
-#         noise_params["noise_type"] = "Denoise"
-#     # Генерация и отображение зашумленного изображения на холсте
-#     generate_and_show_noisy_image()
 
 mode_var = tk.IntVar()
 mode_switch = tk.Radiobutton(top_frame, text="Добавление шума", value=1, variable=mode_var, command=switch_mode)
