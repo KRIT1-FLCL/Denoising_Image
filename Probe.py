@@ -18,7 +18,7 @@ noise_params = {
 # Создание главного окна программы:
 root = tk.Tk()
 root.title("Хромоматематическое моделирование дефектов шумовых эффектов в изображениях")
-root.geometry("1280x720")
+root.geometry("1400x720")
 
 # Создание фреймов для размещения виджетов:
 top_frame = tk.Frame(root)
@@ -71,6 +71,7 @@ def load_image():
 
         # Генерация и отображение зашумленного изображения на холсте
         generate_and_show_noisy_image()
+    print("load_image")
 
 
 # Создание функции для сохранения зашумленного изображения в файл
@@ -87,21 +88,22 @@ def save_noisy_image():
         if file_name:
             # Сохранение зашумленного изображения в файл
             noisy_image_pil.save(file_name)
+    print("save_noisy_image")
 
 
 # Создание функции для переключения режима работы программы (добавление или удаление шума)
-def switch_mode():
-    global noise_params
-
-    # Изменение значения атрибута noise_type словаря noise_params в зависимости от положения тумблера mode_switch
-    if  mode_var.get() == "Добавление шума":
-        noise_params["noise_type"] = noise_type_var.get()
-    else:
-        noise_params["noise_type"] = "Denoise"
-
-    # Генерация и отображение зашумленного изображения на холсте
-    generate_and_show_noisy_image()
-
+# def switch_mode():
+#     global noise_params
+#
+#     # Изменение значения атрибута noise_type словаря noise_params в зависимости от положения тумблера mode_switch
+#     if  mode_var.get() == "Добавление шума":
+#         noise_params["noise_type"] = noise_type_var.get()
+#     else:
+#         noise_params["noise_type"] = "Denoise"
+#
+#     # Генерация и отображение зашумленного изображения на холсте
+#     generate_and_show_noisy_image()
+#     print("switch_mode")
 
 # создание функции для изменения типа шума в режиме добавления шума
 
@@ -110,18 +112,11 @@ def change_noise_type(*args):
 
     # изменение значения атрибута noise_type словаря noise_params в зависимости
     # от выбранного значения в списке noise_type_listbox
-    if mode_var.get() == "Добавление шума":
+    if noise_params["noise_type"] != "Denoise":
         noise_params["noise_type"] = noise_type_var.get()
+        print("Смена режима")
 
-
-    # if mode_var.get() == "Добавление шума":
-    #     noise_params["noise_type"] = noise_functions[3]
-
-    #noise_type
-
-
-    noise_functions = ("Gaussian","Salt and pepper","Shot","Quantization","Film grain","Periodic","Denoise")
-
+    print("change_noise_type")
     print(noise_params["noise_type"])
     # генерация и отображение зашумленного изображения на холсте
     generate_and_show_noisy_image()
@@ -133,14 +128,17 @@ def change_noise_intensity(value):
     global noise_params
 
     # изменение значения атрибута noise_intensity или denoise_intensity словаря noise_params в зависимости от положения ползунка noise_intensity_scale
-    if mode_switch == "Добавление шума":
+    if noise_params["noise_type"] != "Denoise":
         noise_params["noise_intensity"] = float(value)
+        print("ХУЙ1")
     else:
         noise_params["denoise_intensity"] = float(value)
+        print("ХУЙ2")
+
 
     # генерация и отображение зашумленного изображения на холсте
     generate_and_show_noisy_image()
-
+    print("change_noise_intensity")
 
 def switch_mode():
     global noise_params
@@ -154,12 +152,10 @@ def switch_mode():
         # Режим удаления шума
         noise_params["noise_type"] = "Denoise"
 
+    print("switch_mode")
+
     # Генерация и отображение зашумленного изображения на холсте
     #generate_and_show_noisy_image()
-
-# генерация и отображение зашумленного изображения на холсте
-#generate_and_show_noisy_image()
-
 
 # создание функции для генерации гауссовского шума с заданной интенсивностью
 def generate_gaussian_noise(image, intensity):
@@ -177,6 +173,7 @@ def generate_gaussian_noise(image, intensity):
     noisy_image = np.add(image, noise_matrix)
 
     return noisy_image
+    print("generate_gaussian_noise")
 
 
 # создание функции для генерации шума соли и перца с заданной интенсивностью
@@ -198,6 +195,7 @@ def generate_salt_and_pepper_noise(image, intensity):
     noisy_image = np.where(random_matrix > 1 - prob, 255, noisy_image)
 
     return noisy_image
+    print("generate_salt_and_pepper_noise")
 
 
 # создание функции для генерации дробового шума с заданной интенсивностью
@@ -212,6 +210,7 @@ def generate_shot_noise(image, intensity):
     noisy_image = np.add(image, noise_matrix)
 
     return noisy_image
+    print("generate_shot_noise")
 
 
 # создание функции для генерации шума квантования с заданной интенсивностью
@@ -226,6 +225,7 @@ def generate_quantization_noise(image, intensity):
     noisy_image = noisy_image.astype(np.uint8)
 
     return noisy_image
+    print("generate_quantization_noise")
 
 
 # Создание функции для генерации зернистости пленки с заданной интенсивностью
@@ -240,6 +240,7 @@ def generate_film_grain_noise(image, intensity):
     noisy_image = np.add(image, noise_matrix)
 
     return noisy_image
+    print("generate_film_grain_noise")
 
 
 # Создание функции для генерации преиодического шума с заданной интенсивностью
@@ -263,6 +264,7 @@ def generate_periodic_noise(image, intensity):
     noisy_image = np.add(image, noise_matrix)
 
     return noisy_image
+    print("generate_periodic_noise")
 
 
 # Создание функциии для генерации и отображения зашумленного изображения на холсте
@@ -309,6 +311,7 @@ def generate_and_show_noisy_image():
         #ssim_value = ssim(original_image_np, noisy_image_np, multichannel=True)
         ssim_value = ssim(original_image_np, noisy_image_np, multichannel=True, win_size=5, channel_axis=2)
         ssim_label.config(text=f"SSIM: {ssim_value:.4f}")
+    print("generate_and_show_noisy_image")
 
 
 #Создание функции для удаления шума с заданной интенсивностью
@@ -329,6 +332,16 @@ def denoise_image(image, intensity):
     denoised_image = cv2.blur(image, (kernel_size, kernel_size), borderType=cv2.BORDER_REFLECT, filterType=filter_type)
 
     return denoised_image
+    print("denoise_image")
+
+def apply_noise(): # Функция не принимает аргументов
+    global noise_params # Объявление глобальной переменной noise_params, которая является словарем для хранения параметров шума
+
+    noise_params["noise_type"] = noise_type_var.get() # Изменение значения атрибута noise_type словаря noise_params на значение переменной noise_type_var
+    noise_params["noise_intensity"] = noise_intensity_scale.get() # Изменение значения атрибута noise_intensity словаря noise_params на значение ползунка noise_intensity_scale
+
+    generate_and_show_noisy_image() # Вызов функции generate_and_show_noisy_image для генерации и отображения зашумленного изображения
+
 
 
 
@@ -360,8 +373,8 @@ noise_type_var.trace("w", change_noise_type)
 noise_type_spinbox = tk.Spinbox(top_frame, textvariable=noise_type_var, values=("Gaussian", "Salt and pepper", "Shot", "Quantization",
                                    "Film grain", "Periodic"), wrap=True)
 noise_type_spinbox.pack(side=tk.LEFT)
-noise_type_var.set("Gaussian")
 
+noise_type_var.set("Gaussian")
 
 noise_intensity_label = tk.Label(top_frame, text="Интенсивность шума:")
 noise_intensity_label.pack(side=tk.LEFT)
@@ -378,6 +391,11 @@ load_button.pack(side=tk.RIGHT)
 
 save_button = tk.Button(top_frame, text="Сохранить зашумленное изображение", command=save_noisy_image)
 save_button.pack(side=tk.RIGHT)
+
+apply_button = tk.Button(top_frame, text="Применить", command=apply_noise) # Создание виджета Button с указанием родительского фрейма, текста на кнопке и команды apply_noise
+apply_button.pack(side=tk.LEFT) # Размещение виджета на фрейме
+
+
 
 # Запуск главного цикла программы
 root.mainloop()
