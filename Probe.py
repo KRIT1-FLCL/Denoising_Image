@@ -20,7 +20,60 @@ root = tk.Tk()
 root.title("Хромоматематическое моделирование дефектов шумовых эффектов в изображениях")
 root.geometry("1280x720")
 
-# Создание фреймов для размещения виджетов:
+# # Создание фреймов для размещения виджетов:
+# top_frame = tk.Frame(root)
+# top_frame.pack(side=tk.TOP, fill=tk.X)
+#
+# left_frame = tk.Frame(root)
+# left_frame.pack(side=tk.LEFT, fill=tk.Y)
+#
+# right_frame = tk.Frame(root)
+# right_frame.pack(side=tk.RIGHT, fill=tk.Y)
+#
+# # Создание виджетов для отображения изображений:
+# original_image_label = tk.Label(left_frame, text="Оригинальное изображение")
+# original_image_label.pack()
+#
+# original_image_canvas = tk.Canvas(left_frame, width=400, height=400)
+# original_image_canvas.pack()
+#
+# noisy_image_label = tk.Label(right_frame, text="Зашумленное изображение")
+# noisy_image_label.pack()
+#
+# noisy_image_canvas = tk.Canvas(right_frame, width=400, height=400)
+# noisy_image_canvas.pack()
+#
+# # Создание переменных для хранения изображений в формате PIL и numpy
+# original_image_pil = None
+# original_image_np = None
+# noisy_image_pil = None
+# noisy_image_np = None
+#
+# mode_var = tk.IntVar()
+#
+# def load_image():
+#     global original_image_pil, original_image_np, noisy_image_pil, noisy_image_np
+#
+#     # Открытие диалогового окна для выбора файла
+#     file_name = filedialog.askopenfilename(title="Выберите изображение",
+#                                            filetypes=[("Image files", "*.jpg *.png *.bmp")])
+#
+#     if file_name:
+#         # Загрузка изображения в формате PIL и numpy
+#         original_image_pil = Image.open(file_name)
+#         original_image_np = np.array(original_image_pil)
+#
+#         # Отображение оригинального изображения на холсте
+#         original_image_tk = ImageTk.PhotoImage(original_image_pil)
+#         original_image_canvas.create_image(150, 150, image=original_image_tk)
+#         original_image_canvas.image = original_image_tk
+#
+#         # Генерация и отображение зашумленного изображения на холсте
+#         generate_and_show_noisy_image()
+#     print("load_image")
+
+
+#Создание фреймов для размещения виджетов:
 top_frame = tk.Frame(root)
 top_frame.pack(side=tk.TOP, fill=tk.X)
 
@@ -30,20 +83,20 @@ left_frame.pack(side=tk.LEFT, fill=tk.Y)
 right_frame = tk.Frame(root)
 right_frame.pack(side=tk.RIGHT, fill=tk.Y)
 
-# Создание виджетов для отображения изображений:
+#Создание виджетов для отображения изображений:
 original_image_label = tk.Label(left_frame, text="Оригинальное изображение")
 original_image_label.pack()
 
-original_image_canvas = tk.Canvas(left_frame, width=400, height=400)
-original_image_canvas.pack()
+original_image_canvas = tk.Canvas(left_frame)
+original_image_canvas.pack(fill=tk.BOTH, expand=True)
 
 noisy_image_label = tk.Label(right_frame, text="Зашумленное изображение")
 noisy_image_label.pack()
 
-noisy_image_canvas = tk.Canvas(right_frame, width=400, height=400)
-noisy_image_canvas.pack()
+noisy_image_canvas = tk.Canvas(right_frame)
+noisy_image_canvas.pack(fill=tk.BOTH, expand=True)
 
-# Создание переменных для хранения изображений в формате PIL и numpy
+#Создание переменных для хранения изображений в формате PIL и numpy
 original_image_pil = None
 original_image_np = None
 noisy_image_pil = None
@@ -51,27 +104,44 @@ noisy_image_np = None
 
 mode_var = tk.IntVar()
 
-# Создание функции для загрузки изображения из файла
 def load_image():
     global original_image_pil, original_image_np, noisy_image_pil, noisy_image_np
 
-    # Открытие диалогового окна для выбора файла
-    file_name = filedialog.askopenfilename(title="Выберите изображение",
-                                           filetypes=[("Image files", "*.jpg *.png *.bmp")])
+    #Открытие диалогового окна для выбора файла
+    file_name = filedialog.askopenfilename(title="Выберите изображение", filetypes=[("Image files", "*.jpg *.png *.bmp")])
 
     if file_name:
-        # Загрузка изображения в формате PIL и numpy
+
+        #Загрузка изображения в формате PIL и numpy
         original_image_pil = Image.open(file_name)
         original_image_np = np.array(original_image_pil)
 
-        # Отображение оригинального изображения на холсте
-        original_image_tk = ImageTk.PhotoImage(original_image_pil)
-        original_image_canvas.create_image(150, 150, image=original_image_tk)
+        #Получение ширины и высоты исходного изображения
+        original_width, original_height = original_image_pil.size
+
+        # Получение размера холста для оригинального изображения
+        width1 = original_image_canvas.winfo_width()
+        height1 = original_image_canvas.winfo_height()
+
+        #Вычисление коэффициента масштабирования
+        scale_factor = min(width1 / original_width, height1 / original_height)
+
+        #Вычисление новой ширины и высоты с учетом соотношения сторон
+        new_width = int(original_width * scale_factor)
+        new_height = int(original_height * scale_factor)
+
+        #Изменение размера оригинального изображения в формате PIL
+        resized_original_image_pil = original_image_pil.resize((new_width, new_height))
+
+        #Отображение оригинального изображения на холсте
+        original_image_tk = ImageTk.PhotoImage(resized_original_image_pil)
+        original_image_canvas.create_image(width1/2, height1/2, image=original_image_tk)
         original_image_canvas.image = original_image_tk
 
-        # Генерация и отображение зашумленного изображения на холсте
-        generate_and_show_noisy_image()
+    #Генерация и отображение зашумленного изображения на холсте
+    generate_and_show_noisy_image()
     print("load_image")
+
 
 
 # Создание функции для сохранения зашумленного изображения в файл
@@ -90,20 +160,6 @@ def save_noisy_image():
             noisy_image_pil.save(file_name)
     print("save_noisy_image")
 
-
-# Создание функции для переключения режима работы программы (добавление или удаление шума)
-# def switch_mode():
-#     global noise_params
-#
-#     # Изменение значения атрибута noise_type словаря noise_params в зависимости от положения тумблера mode_switch
-#     if  mode_var.get() == "Добавление шума":
-#         noise_params["noise_type"] = noise_type_var.get()
-#     else:
-#         noise_params["noise_type"] = "Denoise"
-#
-#     # Генерация и отображение зашумленного изображения на холсте
-#     generate_and_show_noisy_image()
-#     print("switch_mode")
 
 # создание функции для изменения типа шума в режиме добавления шума
 
@@ -177,20 +233,20 @@ def generate_gaussian_noise(image, intensity):
 
 
 # создание функции для генерации шума соли и перца с заданной интенсивностью
-# def generate_salt_and_pepper_noise(image, intensity):
-#     # генерация матрицы случайных значений от 0 до 1 с размером и типом данных исходного изображения
-#     # с помощью np.random.rand()
-#     noise_matrix = np.random.rand(*image.shape)
-#
-#     # создание копии исходного изображения
-#     noisy_image = image.copy()
-#
-#     # замена пикселей изображения на черные, если значение шума меньше интенсивности / 2
-#     noisy_image[noise_matrix < intensity / 2] = 0
-#
-#     # замена пикселей изображения на белые, если значение шума больше 1 - интенсивности / 2
-#     noisy_image[noise_matrix > 1 - intensity / 2] = 1
-#     return noisy_image
+def generate_salt_and_pepper_noise(image, intensity):
+    # генерация матрицы случайных значений от 0 до 1 с размером и типом данных исходного изображения
+    # с помощью np.random.rand()
+    noise_matrix = np.random.rand(*image.shape)
+
+    # создание копии исходного изображения
+    noisy_image = image.copy()
+
+    # замена пикселей изображения на черные, если значение шума меньше интенсивности / 2
+    noisy_image[noise_matrix < intensity / 2] = 0
+
+    # замена пикселей изображения на белые, если значение шума больше 1 - интенсивности / 2
+    noisy_image[noise_matrix > 1 - intensity / 2] = 1
+    return noisy_image
 
 import cv2 # для работы с изображениями
 
@@ -320,13 +376,43 @@ def generate_and_show_noisy_image():
             else:
                 noisy_image_np[:, :, i] = noise_function(original_image_np[:, :, i], noise_intensity)
 
-        # Преобразование зашумленного изображения в формат PIL
+        # # Преобразование зашумленного изображения в формат PIL
+        # noisy_image_pil = Image.fromarray(noisy_image_np)
+        #
+        # width2 = noisy_image_canvas.winfo_width()
+        # height2 = noisy_image_canvas.winfo_height()
+        #
+        # resized_noisy_image_pil = noisy_image_pil.resize((width2, height2))
+        #
+        # noisy_image_tk = ImageTk.PhotoImage(resized_noisy_image_pil)
+        # noisy_image_canvas.create_image(width2 / 2, height2 / 2, image=noisy_image_tk)
+        # noisy_image_canvas.image = noisy_image_tk
+
+
         noisy_image_pil = Image.fromarray(noisy_image_np)
 
+        # Получение ширины и высоты исходного изображения
+        original_width, original_height = original_image_pil.size
+
+        width2 = noisy_image_canvas.winfo_width()
+        height2 = noisy_image_canvas.winfo_height()
+
+        # Вычисление коэффициента масштабирования
+        scale_factor = min(width2 / original_width, height2 / original_height)
+
+        # Вычисление новой ширины и высоты с учетом соотношения сторон
+        new_width = int(original_width * scale_factor)
+        new_height = int(original_height * scale_factor)
+
+        # Изменение размера зашумленного изображения в формате PIL
+        resized_noisy_image_pil = noisy_image_pil.resize((new_width, new_height))
+
         # Отображение зашумленного изображения на холсте
-        noisy_image_tk = ImageTk.PhotoImage(noisy_image_pil)
-        noisy_image_canvas.create_image(150, 150, image=noisy_image_tk)
+        noisy_image_tk = ImageTk.PhotoImage(resized_noisy_image_pil)
+        noisy_image_canvas.create_image(width2 / 2, height2 / 2, image=noisy_image_tk)
         noisy_image_canvas.image = noisy_image_tk
+
+
 
         # Оценка качества зашумленного изображения с помощью SSIM и вывод результата на экран
         #ssim_value = ssim(original_image_np, noisy_image_np, multichannel=True)
@@ -345,8 +431,6 @@ def denoise_image(image, intensity):
 
     # Возвращаем обработанное изображение из функции
     return denoised_image
-
-
 
 
 
