@@ -15,17 +15,15 @@ r, g, b = cv2.split(image)
 # Получаем от пользователя диаметр окна и сигмы для цвета и пространства
 # (Если диаметр слишком большой, то фильтр может размыть края и детали изображения.
 # Если диаметр слишком маленький, то фильтр может не убрать весь шум.)
-d = int(input('Введите диаметр окна: '))
 
 # Если сигма слишком большая, то фильтр может потерять цветовые переходы и контрастность изображения.
 # Если сигма слишком маленькая, то фильтр может не убрать шум в однородных областях.
-sigmaColor = int(input('Введите сигму для цвета: '))
 
 # Применяем билатеральный фильтр к каждому каналу
 # Указываем параметры, полученные от пользователя
-r_filtered = cv2.bilateralFilter(r, d, sigmaColor, sigmaColor)
-g_filtered = cv2.bilateralFilter(g, d, sigmaColor, sigmaColor)
-b_filtered = cv2.bilateralFilter(b, d, sigmaColor, sigmaColor)
+r_filtered = cv2.bilateralFilter(r, 25, 75, 75)
+g_filtered = cv2.bilateralFilter(g, 25, 75, 75)
+b_filtered = cv2.bilateralFilter(b, 25, 75, 75)
 
 # Объединяем отфильтрованные каналы в одно изображение
 image_filtered = cv2.merge([r_filtered, g_filtered, b_filtered])

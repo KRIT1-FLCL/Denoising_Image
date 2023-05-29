@@ -18,7 +18,7 @@ noise_params = {
 # Создание главного окна программы:
 root = tk.Tk()
 root.title("Хромоматематическое моделирование дефектов шумовых эффектов в изображениях")
-root.geometry("1400x720")
+root.geometry("1280x720")
 
 # Создание фреймов для размещения виджетов:
 top_frame = tk.Frame(root)
@@ -130,10 +130,8 @@ def change_noise_intensity(value):
     # изменение значения атрибута noise_intensity или denoise_intensity словаря noise_params в зависимости от положения ползунка noise_intensity_scale
     if noise_params["noise_type"] != "Denoise":
         noise_params["noise_intensity"] = float(value)
-        print("ХУЙ1")
     else:
         noise_params["denoise_intensity"] = float(value)
-        print("ХУЙ2")
 
 
     # генерация и отображение зашумленного изображения на холсте
@@ -179,20 +177,48 @@ def generate_gaussian_noise(image, intensity):
 
 
 # создание функции для генерации шума соли и перца с заданной интенсивностью
-def generate_salt_and_pepper_noise(image, intensity):
-    # генерация матрицы случайных значений от 0 до 1 с размером и типом данных исходного изображения
-    # с помощью np.random.rand()
-    noise_matrix = np.random.rand(*image.shape)
+# def generate_salt_and_pepper_noise(image, intensity):
+#     # генерация матрицы случайных значений от 0 до 1 с размером и типом данных исходного изображения
+#     # с помощью np.random.rand()
+#     noise_matrix = np.random.rand(*image.shape)
+#
+#     # создание копии исходного изображения
+#     noisy_image = image.copy()
+#
+#     # замена пикселей изображения на черные, если значение шума меньше интенсивности / 2
+#     noisy_image[noise_matrix < intensity / 2] = 0
+#
+#     # замена пикселей изображения на белые, если значение шума больше 1 - интенсивности / 2
+#     noisy_image[noise_matrix > 1 - intensity / 2] = 1
+#     return noisy_image
 
-    # создание копии исходного изображения
-    noisy_image = image.copy()
+import cv2 # для работы с изображениями
 
-    # замена пикселей изображения на черные, если значение шума меньше интенсивности / 2
-    noisy_image[noise_matrix < intensity / 2] = 0
+def remove_salt_and_pepper_noise(image, intensity):
+    # Выбор типа фильтра для удаления шума в зависимости от интенсивности удаления шума
+    if intensity < 0.25:
+        filter_type = cv2.MEDIAN # Медианный фильтр
+    elif intensity < 0.5:
+        filter_type = cv2.GAUSSIAN # Гауссовский фильтр
+    else:
+        filter_type = cv2.BILATERAL # Билатеральный фильтр
 
-    # замена пикселей изображения на белые, если значение шума больше 1 - интенсивности / 2
-    noisy_image[noise_matrix > 1 - intensity / 2] = 1
-    return noisy_image
+    # Вычисление размера ядра фильтра в зависимости от интенсивности удаления шума
+    kernel_size = int(intensity * 20) + 1 # Размер ядра будет меняться от 1 до 21
+
+    # Применение фильтра к исходному изображению с помощью выбранной функции
+    if filter_type == cv2.BILATERAL:
+        # Для билатерального фильтра нужно указать сигмы для цветового и пространственного доменов
+        sigma_color = intensity * 100 # Сигма для цвета будет меняться от 0 до 100
+        sigma_space = intensity * 10 # Сигма для пространства будет меняться от 0 до 10
+        denoised_image = filter_type(image, kernel_size, sigma_color, sigma_space)
+    else:
+        # Для других типов фильтров достаточно указать размер ядра
+        denoised_image = filter_type(image, (kernel_size, kernel_size))
+
+    # Возвращаем обработанное изображение из функции
+    return denoised_image
+
 
 # создание функции для генерации дробового шума с заданной интенсивностью
 def generate_shot_noise(image, intensity):
@@ -308,33 +334,18 @@ def generate_and_show_noisy_image():
         ssim_label.config(text=f"SSIM: {ssim_value:.4f}")
 
 
-#Создание функции для удаления шума с заданной интенсивностью
 def denoise_image(image, intensity):
-    # Выбор типа фильтра для удаления шума в зависимости от интенсивности удаления шума
-    if intensity < 0.25:
-        filter_type = cv2.MEDIAN
-    # Медианный фильтр
-    elif intensity < 0.5:
-        filter_type = cv2.GAUSSIAN  # Гауссовский фильтр
-    else:
-        filter_type = cv2.BILATERAL  # Билатеральный фильтр
+    # Вычисляем диаметр окна и сигмы для цвета и пространства в зависимости от интенсивности удаления шума
+    diameter = int(intensity * 40) + 5 # Диаметр окна будет меняться от 5 до 45
+    sigma_color = intensity * 150 # Сигма для цвета будет меняться от 0 до 150
+    sigma_space = intensity * 20 # Сигма для пространства будет меняться от 0 до 20
 
-    # Вычисление размера ядра фильтра в зависимости от интенсивности удаления шума
-    kernel_size = int(intensity * 20) + 1
+    # Применяем билатеральный фильтр к всему изображению
+    denoised_image = cv2.bilateralFilter(image, diameter, sigma_color, sigma_space)
 
-    # Применение фильтра к исходному изображению с помощью cv2.blur()
-    denoised_image = cv2.blur(image, (kernel_size, kernel_size), borderType=cv2.BORDER_REFLECT, filterType=filter_type)
-
+    # Возвращаем обработанное изображение из функции
     return denoised_image
-    print("denoise_image")
 
-def apply_noise(): # Функция не принимает аргументов
-    global noise_params # Объявление глобальной переменной noise_params, которая является словарем для хранения параметров шума
-
-    noise_params["noise_type"] = noise_type_var.get() # Изменение значения атрибута noise_type словаря noise_params на значение переменной noise_type_var
-    noise_params["noise_intensity"] = noise_intensity_scale.get() # Изменение значения атрибута noise_intensity словаря noise_params на значение ползунка noise_intensity_scale
-
-    generate_and_show_noisy_image() # Вызов функции generate_and_show_noisy_image для генерации и отображения зашумленного изображения
 
 
 
@@ -359,7 +370,7 @@ noise_type_listbox = tk.OptionMenu(top_frame, noise_type_var, "Gaussian", "Salt 
 noise_type_listbox.pack(side=tk.LEFT)
 noise_type_var.set("Gaussian")
 
-noise_intensity_label = tk.Label(top_frame, text="Интенсивность шума:")
+noise_intensity_label = tk.Label(top_frame, text="Интенсивность:")
 noise_intensity_label.pack(side=tk.LEFT)
 noise_intensity_scale = tk.Scale(top_frame, from_=0.01, to=1.0, resolution=0.01, orient=tk.HORIZONTAL,
                                  command=change_noise_intensity)
@@ -372,12 +383,8 @@ ssim_label.pack(side=tk.RIGHT)
 load_button = tk.Button(top_frame, text="Загрузить изображение", command=load_image)
 load_button.pack(side=tk.RIGHT)
 
-save_button = tk.Button(top_frame, text="Сохранить зашумленное изображение", command=save_noisy_image)
+save_button = tk.Button(top_frame, text="Сохранить изображение", command=save_noisy_image)
 save_button.pack(side=tk.RIGHT)
-
-apply_button = tk.Button(top_frame, text="Применить", command=apply_noise) # Создание виджета Button с указанием родительского фрейма, текста на кнопке и команды apply_noise
-apply_button.pack(side=tk.LEFT) # Размещение виджета на фрейме
-
 
 
 # Запуск главного цикла программы
