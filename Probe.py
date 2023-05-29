@@ -175,8 +175,6 @@ def generate_gaussian_noise(image, intensity):
 
     # сложение исходного изображения с матрицей шума поэлементно с учетом переполнения с помощью np.add()
     noisy_image = np.add(image, noise_matrix)
-    print("generate_gaussian_noise")
-
     return noisy_image
 
 
@@ -194,12 +192,7 @@ def generate_salt_and_pepper_noise(image, intensity):
 
     # замена пикселей изображения на белые, если значение шума больше 1 - интенсивности / 2
     noisy_image[noise_matrix > 1 - intensity / 2] = 1
-
-    print("generate_salt_and_pepper_noise")
-
     return noisy_image
-
-
 
 # создание функции для генерации дробового шума с заданной интенсивностью
 def generate_shot_noise(image, intensity):
@@ -211,23 +204,7 @@ def generate_shot_noise(image, intensity):
 
     # сложение исходного изображения с матрицей шума поэлементно с учетом переполнения с помощью np.add()
     noisy_image = np.add(image, noise_matrix)
-    print("generate_shot_noise")
     return noisy_image
-
-
-
-# создание функции для генерации шума квантования с заданной интенсивностью
-# def generate_quantization_noise(image, intensity):
-#     # Вычисление количества уровней квантования в зависимости от интенсивности шума
-#     levels = int(256 / intensity)
-#
-#     # Квантование исходного изображения с заданным количеством уровней с помощью np.floor_divide()
-#     noisy_image = np.floor_divide(image, intensity) * intensity
-#
-#     # Преобразование типа данных изображения в uint8 с помощью np.astype()
-#     noisy_image = noisy_image.astype(np.uint8)
-#     print("generate_quantization_noise")
-#     return noisy_image
 
 def generate_quantization_noise(image, intensity):
     # вычисление количества уровней яркости в зависимости от интенсивности шума
@@ -246,9 +223,6 @@ def generate_quantization_noise(image, intensity):
     # приведение округленного изображения к целочисленному типу данных np.uint8
     # с помощью метода astype()
     quantized_image = rounded_image.astype(np.uint8)
-
-    print("generate_quantization_noise")
-
     return quantized_image
 
 
@@ -262,32 +236,7 @@ def generate_film_grain_noise(image, intensity):
 
     # Сложение исходного изображения с матрицей шума поэлементно с учетом переполнения с помощью np.add()
     noisy_image = np.add(image, noise_matrix)
-    print("generate_film_grain_noise")
     return noisy_image
-
-
-
-# Создание функции для генерации преиодического шума с заданной интенсивностью
-# def generate_periodic_noise(image, intensity):
-#     # Вычисление частоты и амплитуды периодического шума в зависимости от интенсивности шума
-#     frequency = intensity * 10
-#     amplitude = intensity * 255
-#
-#     # Получение высоты и ширины исходного изображения
-#     height, width = image.shape[:2]
-#
-#     # Создание матрицы координат пикселей изображения с помощью np.arange() и np.meshgrid()
-#     x = np.arange(width)
-#     y = np.arange(height)
-#     xv, yv = np.meshgrid(x, y)
-#
-#     # Генерация матрицы значений периодической функции (например, синусоиды) с заданной частотой и амплитудой с помощью np.sin()
-#     noise_matrix = amplitude * np.sin(2 * np.pi * frequency * xv / width).astype(np.uint8)
-#
-#     # Сложение исходного изображения с матрицей шума поэлементно с учетом переполнения с помощью np.add()
-#     noisy_image = np.add(image, noise_matrix)
-#     print("generate_periodic_noise")
-#     return noisy_image
 
 def generate_periodic_noise(image, intensity):
 
