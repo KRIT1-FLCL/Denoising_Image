@@ -157,23 +157,27 @@ def switch_mode():
     # Генерация и отображение зашумленного изображения на холсте
     #generate_and_show_noisy_image()
 
-# создание функции для генерации гауссовского шума с заданной интенсивностью
+
+#################################################### ШУМЫ БЛЯТЬ ##########################################
+
 def generate_gaussian_noise(image, intensity):
-    # вычисление среднего и стандартного отклонения гауссовского распределения
+    # вычисление стандартного отклонения гауссовского распределения
     # в зависимости от интенсивности шума
 
-    mean = 0
     std = intensity * 255
 
-    # генерация матрицы случайных значений с размером и типом данных исходного изображения
-    # по нормальному распределению с помощью np.random.normal()
-    noise_matrix = np.random.normal(mean, std, image.shape).astype(np.uint8)
+    # создание пустой матрицы того же размера и типа данных, что и исходное изображение
+    noise_matrix = np.zeros_like(image)
+
+    # заполнение матрицы случайными значениями по стандартному нормальному распределению
+    # с помощью cv2.randn() и умножение на std
+    cv2.randn(noise_matrix, 0, std)
 
     # сложение исходного изображения с матрицей шума поэлементно с учетом переполнения с помощью np.add()
     noisy_image = np.add(image, noise_matrix)
+    print("generate_gaussian_noise")
 
     return noisy_image
-    print("generate_gaussian_noise")
 
 
 # создание функции для генерации шума соли и перца с заданной интенсивностью
@@ -194,8 +198,10 @@ def generate_salt_and_pepper_noise(image, intensity):
     noisy_image = np.where(random_matrix < prob, 0, noisy_image)
     noisy_image = np.where(random_matrix > 1 - prob, 255, noisy_image)
 
-    return noisy_image
     print("generate_salt_and_pepper_noise")
+
+    return noisy_image
+
 
 
 # создание функции для генерации дробового шума с заданной интенсивностью
@@ -208,9 +214,9 @@ def generate_shot_noise(image, intensity):
 
     # сложение исходного изображения с матрицей шума поэлементно с учетом переполнения с помощью np.add()
     noisy_image = np.add(image, noise_matrix)
-
-    return noisy_image
     print("generate_shot_noise")
+    return noisy_image
+
 
 
 # создание функции для генерации шума квантования с заданной интенсивностью
@@ -223,9 +229,9 @@ def generate_quantization_noise(image, intensity):
 
     # Преобразование типа данных изображения в uint8 с помощью np.astype()
     noisy_image = noisy_image.astype(np.uint8)
-
-    return noisy_image
     print("generate_quantization_noise")
+    return noisy_image
+
 
 
 # Создание функции для генерации зернистости пленки с заданной интенсивностью
@@ -238,9 +244,9 @@ def generate_film_grain_noise(image, intensity):
 
     # Сложение исходного изображения с матрицей шума поэлементно с учетом переполнения с помощью np.add()
     noisy_image = np.add(image, noise_matrix)
-
-    return noisy_image
     print("generate_film_grain_noise")
+    return noisy_image
+
 
 
 # Создание функции для генерации преиодического шума с заданной интенсивностью
@@ -262,9 +268,9 @@ def generate_periodic_noise(image, intensity):
 
     # Сложение исходного изображения с матрицей шума поэлементно с учетом переполнения с помощью np.add()
     noisy_image = np.add(image, noise_matrix)
-
-    return noisy_image
     print("generate_periodic_noise")
+    return noisy_image
+
 
 
 # Создание функциии для генерации и отображения зашумленного изображения на холсте
@@ -311,7 +317,6 @@ def generate_and_show_noisy_image():
         #ssim_value = ssim(original_image_np, noisy_image_np, multichannel=True)
         ssim_value = ssim(original_image_np, noisy_image_np, multichannel=True, win_size=5, channel_axis=2)
         ssim_label.config(text=f"SSIM: {ssim_value:.4f}")
-    print("generate_and_show_noisy_image")
 
 
 #Создание функции для удаления шума с заданной интенсивностью
@@ -356,24 +361,13 @@ mode_switch.select()
 mode_switch = tk.Radiobutton(top_frame, text="Удаление шума", value=2, variable=mode_var, command=switch_mode)
 mode_switch.pack(side=tk.LEFT)
 
-# noise_type_label = tk.Label(top_frame, text="Тип шума:")
-# noise_type_label.pack(side=tk.LEFT)
-# noise_type_var = tk.StringVar()
-# noise_type_var.trace("w", change_noise_type)
-# noise_type_listbox = tk.OptionMenu(top_frame, noise_type_var, "Gaussian", "Salt and pepper", "Shot", "Quantization",
-#                                    "Film grain", "Periodic")
-# noise_type_listbox.pack(side=tk.LEFT)
-# noise_type_var.set("Salt and pepper")
-
-
 noise_type_label = tk.Label(top_frame, text="Тип шума:")
 noise_type_label.pack(side=tk.LEFT)
 noise_type_var = tk.StringVar()
 noise_type_var.trace("w", change_noise_type)
-noise_type_spinbox = tk.Spinbox(top_frame, textvariable=noise_type_var, values=("Gaussian", "Salt and pepper", "Shot", "Quantization",
-                                   "Film grain", "Periodic"), wrap=True)
-noise_type_spinbox.pack(side=tk.LEFT)
-
+noise_type_listbox = tk.OptionMenu(top_frame, noise_type_var, "Gaussian", "Salt and pepper", "Shot", "Quantization",
+                                   "Film grain", "Periodic")
+noise_type_listbox.pack(side=tk.LEFT)
 noise_type_var.set("Gaussian")
 
 noise_intensity_label = tk.Label(top_frame, text="Интенсивность шума:")
