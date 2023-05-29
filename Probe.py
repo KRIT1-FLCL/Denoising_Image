@@ -259,9 +259,6 @@ def generate_periodic_noise(image, intensity):
     # и нормализация результата в диапазоне от 0 до 255
     noisy_image = image + stripe_pattern
     noisy_image = np.clip(noisy_image, 0, 255)
-
-    print("generate_periodic_noise")
-
     return noisy_image
 
 
