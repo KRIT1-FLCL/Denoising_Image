@@ -20,58 +20,6 @@ root = tk.Tk()
 root.title("Хромоматематическое моделирование дефектов шумовых эффектов в изображениях")
 root.geometry("1280x720")
 
-# # Создание фреймов для размещения виджетов:
-# top_frame = tk.Frame(root)
-# top_frame.pack(side=tk.TOP, fill=tk.X)
-#
-# left_frame = tk.Frame(root)
-# left_frame.pack(side=tk.LEFT, fill=tk.Y)
-#
-# right_frame = tk.Frame(root)
-# right_frame.pack(side=tk.RIGHT, fill=tk.Y)
-#
-# # Создание виджетов для отображения изображений:
-# original_image_label = tk.Label(left_frame, text="Оригинальное изображение")
-# original_image_label.pack()
-#
-# original_image_canvas = tk.Canvas(left_frame, width=400, height=400)
-# original_image_canvas.pack()
-#
-# noisy_image_label = tk.Label(right_frame, text="Зашумленное изображение")
-# noisy_image_label.pack()
-#
-# noisy_image_canvas = tk.Canvas(right_frame, width=400, height=400)
-# noisy_image_canvas.pack()
-#
-# # Создание переменных для хранения изображений в формате PIL и numpy
-# original_image_pil = None
-# original_image_np = None
-# noisy_image_pil = None
-# noisy_image_np = None
-#
-# mode_var = tk.IntVar()
-#
-# def load_image():
-#     global original_image_pil, original_image_np, noisy_image_pil, noisy_image_np
-#
-#     # Открытие диалогового окна для выбора файла
-#     file_name = filedialog.askopenfilename(title="Выберите изображение",
-#                                            filetypes=[("Image files", "*.jpg *.png *.bmp")])
-#
-#     if file_name:
-#         # Загрузка изображения в формате PIL и numpy
-#         original_image_pil = Image.open(file_name)
-#         original_image_np = np.array(original_image_pil)
-#
-#         # Отображение оригинального изображения на холсте
-#         original_image_tk = ImageTk.PhotoImage(original_image_pil)
-#         original_image_canvas.create_image(150, 150, image=original_image_tk)
-#         original_image_canvas.image = original_image_tk
-#
-#         # Генерация и отображение зашумленного изображения на холсте
-#         generate_and_show_noisy_image()
-#     print("load_image")
-
 
 #Создание фреймов для размещения виджетов:
 top_frame = tk.Frame(root)
@@ -140,9 +88,6 @@ def load_image():
 
     #Генерация и отображение зашумленного изображения на холсте
     generate_and_show_noisy_image()
-    print("load_image")
-
-
 
 # Создание функции для сохранения зашумленного изображения в файл
 
@@ -158,7 +103,6 @@ def save_noisy_image():
         if file_name:
             # Сохранение зашумленного изображения в файл
             noisy_image_pil.save(file_name)
-    print("save_noisy_image")
 
 
 # создание функции для изменения типа шума в режиме добавления шума
@@ -170,9 +114,7 @@ def change_noise_type(*args):
     # от выбранного значения в списке noise_type_listbox
     if noise_params["noise_type"] != "Denoise":
         noise_params["noise_type"] = noise_type_var.get()
-        print("Смена режима")
 
-    print("change_noise_type")
     print(noise_params["noise_type"])
     # генерация и отображение зашумленного изображения на холсте
     generate_and_show_noisy_image()
@@ -192,7 +134,6 @@ def change_noise_intensity(value):
 
     # генерация и отображение зашумленного изображения на холсте
     generate_and_show_noisy_image()
-    print("change_noise_intensity")
 
 def switch_mode():
     global noise_params
@@ -206,13 +147,6 @@ def switch_mode():
         # Режим удаления шума
         noise_params["noise_type"] = "Denoise"
 
-    print("switch_mode")
-
-    # Генерация и отображение зашумленного изображения на холсте
-    #generate_and_show_noisy_image()
-
-
-#################################################### ШУМЫ БЛЯТЬ ##########################################
 
 def generate_gaussian_noise(image, intensity):
     # вычисление стандартного отклонения гауссовского распределения
@@ -247,8 +181,6 @@ def generate_salt_and_pepper_noise(image, intensity):
     # замена пикселей изображения на белые, если значение шума больше 1 - интенсивности / 2
     noisy_image[noise_matrix > 1 - intensity / 2] = 1
     return noisy_image
-
-import cv2 # для работы с изображениями
 
 def remove_salt_and_pepper_noise(image, intensity):
     # Выбор типа фильтра для удаления шума в зависимости от интенсивности удаления шума
@@ -375,19 +307,6 @@ def generate_and_show_noisy_image():
                 noisy_image_np[:, :, i] = noise_function(original_image_np[:, :, i], denoise_intensity)
             else:
                 noisy_image_np[:, :, i] = noise_function(original_image_np[:, :, i], noise_intensity)
-
-        # # Преобразование зашумленного изображения в формат PIL
-        # noisy_image_pil = Image.fromarray(noisy_image_np)
-        #
-        # width2 = noisy_image_canvas.winfo_width()
-        # height2 = noisy_image_canvas.winfo_height()
-        #
-        # resized_noisy_image_pil = noisy_image_pil.resize((width2, height2))
-        #
-        # noisy_image_tk = ImageTk.PhotoImage(resized_noisy_image_pil)
-        # noisy_image_canvas.create_image(width2 / 2, height2 / 2, image=noisy_image_tk)
-        # noisy_image_canvas.image = noisy_image_tk
-
 
         noisy_image_pil = Image.fromarray(noisy_image_np)
 
