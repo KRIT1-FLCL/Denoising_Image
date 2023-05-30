@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 import numpy as np
 import cv2
 from skimage.metrics import structural_similarity as ssim
+import skimage.restoration
 from collections import deque  # Добавлено для использования deque
 from itertools import permutations  # Добавлено для использования permutations
 
@@ -18,7 +19,7 @@ noise_params = {
 # Создание главного окна программы:
 root = tk.Tk()
 root.title("Хромоматематическое моделирование дефектов шумовых эффектов в изображениях")
-root.geometry("1280x720")
+root.geometry("1420x720")
 
 
 #Создание фреймов для размещения виджетов:
@@ -143,10 +144,58 @@ def switch_mode():
     if mode_value == 1:
         # Режим добавления шума
         noise_params["noise_type"] = noise_type_var.get()
+    elif mode_value == 2:
+        # Режим удаления шума
+        noise_params["noise_type"] = "bilateral"
+    elif mode_value == 3:
+        # Режим удаления шума
+        noise_params["noise_type"] = "median"
     else:
         # Режим удаления шума
         noise_params["noise_type"] = "Denoise"
 
+
+#Создание функции для удаления шума с помощью билатерального фильтра
+def denoise_image_bilateral(image, intensity):
+    # Вычисляем диаметр окна и сигмы для цвета и пространства в зависимости от интенсивности удаления шума
+    diameter = int(intensity * 40) + 5
+    # Диаметр окна будет меняться от 5 до 45
+    sigma_color = intensity * 150
+    # Сигма для цвета будет меняться от 0 до 150
+    sigma_space = intensity * 20 # Сигма для пространства будет меняться от 0 до 20
+
+    # Применяем билатеральный фильтр к всему изображению
+    denoised_image = cv2.bilateralFilter(image, diameter, sigma_color, sigma_space)
+
+    # Возвращаем обработанное изображение из функции
+    return denoised_image
+
+#Создание функции для удаления шума с помощью медианного фильтра
+def denoise_image_median(image, intensity):
+    # Вычисляем размер окна в зависимости от интенсивности удаления шума
+    kernel_size = int(intensity * 10) + 1
+    # Размер окна будет меняться от 1 до 11
+    if kernel_size % 2 == 0:
+        # Если размер окна четный, то увеличиваем его на 1
+        kernel_size += 1
+
+    # Применяем медианный фильтр к всему изображению
+    denoised_image = cv2.medianBlur(image, kernel_size)
+
+    # Возвращаем обработанное изображение из функции
+    return denoised_image
+
+#Создание функции для удаления шума с помощью фильтра Винера
+def denoise_image_wiener(image, intensity):
+    # Вычисляем параметр регуляризации в зависимости от интенсивности удаления шума
+    reg_param = intensity * 10
+    # Параметр регуляризации будет меняться от 0 до 10
+
+    # Применяем фильтр Винера к всему изображению с помощью функции wiener() из библиотеки skimage.restoration
+    denoised_image = skimage.restoration.wiener(image, reg_param)
+
+    # Возвращаем обработанное изображение из функции
+    return denoised_image
 
 def generate_gaussian_noise(image, intensity):
     # вычисление стандартного отклонения гауссовского распределения
@@ -179,33 +228,8 @@ def generate_salt_and_pepper_noise(image, intensity):
     noisy_image[noise_matrix < intensity / 2] = 0
 
     # замена пикселей изображения на белые, если значение шума больше 1 - интенсивности / 2
-    noisy_image[noise_matrix > 1 - intensity / 2] = 1
+    noisy_image[noise_matrix > 1 - intensity / 2] = 255
     return noisy_image
-
-def remove_salt_and_pepper_noise(image, intensity):
-    # Выбор типа фильтра для удаления шума в зависимости от интенсивности удаления шума
-    if intensity < 0.25:
-        filter_type = cv2.MEDIAN # Медианный фильтр
-    elif intensity < 0.5:
-        filter_type = cv2.GAUSSIAN # Гауссовский фильтр
-    else:
-        filter_type = cv2.BILATERAL # Билатеральный фильтр
-
-    # Вычисление размера ядра фильтра в зависимости от интенсивности удаления шума
-    kernel_size = int(intensity * 20) + 1 # Размер ядра будет меняться от 1 до 21
-
-    # Применение фильтра к исходному изображению с помощью выбранной функции
-    if filter_type == cv2.BILATERAL:
-        # Для билатерального фильтра нужно указать сигмы для цветового и пространственного доменов
-        sigma_color = intensity * 100 # Сигма для цвета будет меняться от 0 до 100
-        sigma_space = intensity * 10 # Сигма для пространства будет меняться от 0 до 10
-        denoised_image = filter_type(image, kernel_size, sigma_color, sigma_space)
-    else:
-        # Для других типов фильтров достаточно указать размер ядра
-        denoised_image = filter_type(image, (kernel_size, kernel_size))
-
-    # Возвращаем обработанное изображение из функции
-    return denoised_image
 
 
 # создание функции для генерации дробового шума с заданной интенсивностью
@@ -294,19 +318,24 @@ def generate_and_show_noisy_image():
             "Quantization": generate_quantization_noise,
             "Film grain": generate_film_grain_noise,
             "Periodic": generate_periodic_noise,
-            "Denoise": denoise_image
+            "Denoise": denoise_image,
+            "wiener": denoise_image_wiener,
+            "median": denoise_image_median,
+            "bilateral": denoise_image_bilateral
         }
 
         # Выбор функции для генерации или удаления шума в зависимости от типа шума из словаря noise_functions
         noise_function = noise_functions[noise_type]
 
-        # Применение функции для генерации или удаления шума к каждому цветовому каналу исходного изображения
+
         noisy_image_np = np.zeros_like(original_image_np)
         for i in range(3):
             if noise_type == "Denoise":
-                noisy_image_np[:, :, i] = noise_function(original_image_np[:, :, i], denoise_intensity)
-            else:
-                noisy_image_np[:, :, i] = noise_function(original_image_np[:, :, i], noise_intensity)
+                noisy_image_np[:, :, i] = noise_function(original_image_np[:, :, i],denoise_intensity)
+            elif noise_type == "Salt and pepper":
+                noisy_image_np = noise_function(original_image_np, noise_intensity)
+                # break
+            else: noisy_image_np[:, :, i] = noise_function(original_image_np[:, :, i], noise_intensity)
 
         noisy_image_pil = Image.fromarray(noisy_image_np)
 
@@ -338,7 +367,6 @@ def generate_and_show_noisy_image():
         ssim_value = ssim(original_image_np, noisy_image_np, multichannel=True, win_size=5, channel_axis=2)
         ssim_label.config(text=f"SSIM: {ssim_value:.4f}")
 
-
 def denoise_image(image, intensity):
     # Вычисляем диаметр окна и сигмы для цвета и пространства в зависимости от интенсивности удаления шума
     diameter = int(intensity * 40) + 5 # Диаметр окна будет меняться от 5 до 45
@@ -352,7 +380,6 @@ def denoise_image(image, intensity):
     return denoised_image
 
 
-
 # Создание виджетов для управления параметрами шума
 mode_label = tk.Label(top_frame, text="Режим работы программы:")
 mode_label.pack(side=tk.LEFT)
@@ -361,8 +388,13 @@ mode_var = tk.IntVar()
 mode_switch = tk.Radiobutton(top_frame, text="Добавление шума", value=1, variable=mode_var, command=switch_mode)
 mode_switch.pack(side=tk.LEFT)
 mode_switch.select()
-mode_switch = tk.Radiobutton(top_frame, text="Удаление шума", value=2, variable=mode_var, command=switch_mode)
+mode_switch = tk.Radiobutton(top_frame, text="Биратеральный фильтр", value=2, variable=mode_var, command=switch_mode)
 mode_switch.pack(side=tk.LEFT)
+mode_switch = tk.Radiobutton(top_frame, text="Медианный фильтр", value=3, variable=mode_var, command=switch_mode)
+mode_switch.pack(side=tk.LEFT)
+mode_switch = tk.Radiobutton(top_frame, text="Фильтр Винера", value=4, variable=mode_var, command=switch_mode)
+mode_switch.pack(side=tk.LEFT)
+
 
 noise_type_label = tk.Label(top_frame, text="Тип шума:")
 noise_type_label.pack(side=tk.LEFT)
@@ -378,7 +410,7 @@ noise_intensity_label.pack(side=tk.LEFT)
 noise_intensity_scale = tk.Scale(top_frame, from_=0.01, to=1.0, resolution=0.01, orient=tk.HORIZONTAL,
                                  command=change_noise_intensity)
 noise_intensity_scale.pack(side=tk.LEFT)
-noise_intensity_scale.set(0.1)
+noise_intensity_scale.set(0.5)
 
 ssim_label = tk.Label(top_frame, text="SSIM: 0.0000")
 ssim_label.pack(side=tk.RIGHT)
