@@ -19,7 +19,7 @@ noise_params = {
 # Создание главного окна программы:
 root = tk.Tk()
 root.title("Хромоматематическое моделирование дефектов шумовых эффектов в изображениях")
-root.geometry("1420x720")
+root.geometry("1000x720")
 
 
 #Создание фреймов для размещения виджетов:
@@ -116,7 +116,6 @@ def change_noise_type(*args):
     if noise_params["noise_type"] != "Denoise":
         noise_params["noise_type"] = noise_type_var.get()
 
-    print(noise_params["noise_type"])
     # генерация и отображение зашумленного изображения на холсте
     generate_and_show_noisy_image()
 
@@ -134,7 +133,7 @@ def change_noise_intensity(value):
 
 
     # генерация и отображение зашумленного изображения на холсте
-    generate_and_show_noisy_image()
+    #generate_and_show_noisy_image()
 
 def switch_mode():
     global noise_params
@@ -150,10 +149,25 @@ def switch_mode():
     elif mode_value == 3:
         # Режим удаления шума
         noise_params["noise_type"] = "median"
-    else:
+    elif mode_value == 4:
         # Режим удаления шума
-        noise_params["noise_type"] = "Denoise"
+        noise_params["noise_type"] = "nonlocal"
 
+
+def denoise_image_nonlocal_means(image, intensity):
+
+    # Вычисляем размер патча и степень фильтрации в зависимости от интенсивности удаления шума
+    patch_size = int(intensity * 10) + 3
+    # Размер патча будет меняться от 3 до 13
+    filter_strength = intensity * 20 + 1
+    # Степень фильтрации будет меняться от 1 до 21
+
+    # Применяем фильтр Нонлокал-Минс к всему изображению с помощью функции fastNlMeansDenoising() из библиотеки cv2
+    # Передаем размер патча и степень фильтрации в качестве аргументов h и templateWindowSize
+    denoised_image = cv2.fastNlMeansDenoising(image, h=filter_strength, templateWindowSize=patch_size)
+
+    # Возвращаем обработанное изображение из функции
+    return denoised_image
 
 #Создание функции для удаления шума с помощью билатерального фильтра
 def denoise_image_bilateral(image, intensity):
@@ -181,18 +195,6 @@ def denoise_image_median(image, intensity):
 
     # Применяем медианный фильтр к всему изображению
     denoised_image = cv2.medianBlur(image, kernel_size)
-
-    # Возвращаем обработанное изображение из функции
-    return denoised_image
-
-#Создание функции для удаления шума с помощью фильтра Винера
-def denoise_image_wiener(image, intensity):
-    # Вычисляем параметр регуляризации в зависимости от интенсивности удаления шума
-    reg_param = intensity * 10
-    # Параметр регуляризации будет меняться от 0 до 10
-
-    # Применяем фильтр Винера к всему изображению с помощью функции wiener() из библиотеки skimage.restoration
-    denoised_image = skimage.restoration.wiener(image, reg_param)
 
     # Возвращаем обработанное изображение из функции
     return denoised_image
@@ -319,7 +321,7 @@ def generate_and_show_noisy_image():
             "Film grain": generate_film_grain_noise,
             "Periodic": generate_periodic_noise,
             "Denoise": denoise_image,
-            "wiener": denoise_image_wiener,
+            "nonlocal": denoise_image_nonlocal_means,
             "median": denoise_image_median,
             "bilateral": denoise_image_bilateral
         }
@@ -380,22 +382,6 @@ def denoise_image(image, intensity):
     return denoised_image
 
 
-# Создание виджетов для управления параметрами шума
-mode_label = tk.Label(top_frame, text="Режим работы программы:")
-mode_label.pack(side=tk.LEFT)
-
-mode_var = tk.IntVar()
-mode_switch = tk.Radiobutton(top_frame, text="Добавление шума", value=1, variable=mode_var, command=switch_mode)
-mode_switch.pack(side=tk.LEFT)
-mode_switch.select()
-mode_switch = tk.Radiobutton(top_frame, text="Биратеральный фильтр", value=2, variable=mode_var, command=switch_mode)
-mode_switch.pack(side=tk.LEFT)
-mode_switch = tk.Radiobutton(top_frame, text="Медианный фильтр", value=3, variable=mode_var, command=switch_mode)
-mode_switch.pack(side=tk.LEFT)
-mode_switch = tk.Radiobutton(top_frame, text="Фильтр Винера", value=4, variable=mode_var, command=switch_mode)
-mode_switch.pack(side=tk.LEFT)
-
-
 noise_type_label = tk.Label(top_frame, text="Тип шума:")
 noise_type_label.pack(side=tk.LEFT)
 noise_type_var = tk.StringVar()
@@ -412,6 +398,15 @@ noise_intensity_scale = tk.Scale(top_frame, from_=0.01, to=1.0, resolution=0.01,
 noise_intensity_scale.pack(side=tk.LEFT)
 noise_intensity_scale.set(0.5)
 
+
+def apply_noise_reduction():
+    generate_and_show_noisy_image()
+
+apply_button = tk.Button(top_frame, text="Применить", command=apply_noise_reduction)
+apply_button.pack(side=tk.LEFT)
+
+
+
 ssim_label = tk.Label(top_frame, text="SSIM: 0.0000")
 ssim_label.pack(side=tk.RIGHT)
 
@@ -420,6 +415,20 @@ load_button.pack(side=tk.RIGHT)
 
 save_button = tk.Button(top_frame, text="Сохранить изображение", command=save_noisy_image)
 save_button.pack(side=tk.RIGHT)
+
+mode_label = tk.Label(top_frame, text="Режим работы программы:")
+mode_label.pack(side=tk.TOP)
+
+mode_var = tk.IntVar()
+mode_switch = tk.Radiobutton(top_frame, text="Добавление шума", value=1, variable=mode_var, command=switch_mode)
+mode_switch.pack(side=tk.TOP)
+mode_switch.select()
+mode_switch = tk.Radiobutton(top_frame, text="Биратеральный фильтр", value=2, variable=mode_var, command=switch_mode)
+mode_switch.pack(side=tk.TOP)
+mode_switch = tk.Radiobutton(top_frame, text="Медианный фильтр", value=3, variable=mode_var, command=switch_mode)
+mode_switch.pack(side=tk.TOP)
+mode_switch = tk.Radiobutton(top_frame, text="Фильтр Винера", value=4, variable=mode_var, command=switch_mode)
+mode_switch.pack(side=tk.TOP)
 
 
 # Запуск главного цикла программы
